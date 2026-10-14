@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWILL UPGRADER</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+  body { 
+    background: linear-gradient(135deg, #1a0f00 0%, #2a1800 50%, #1a0f00 100%);
+    color: #ff8c00; min-height: 100vh; display: flex; flex-direction: column; align-items: center; 
+    padding: 15px; padding-top: 70px;
+    background-attachment: fixed;
+  }
+  body.bg-promo { background: linear-gradient(135deg, #2a0f3a 0%, #4a1a5a 50%, #2a0f3a 100%); }
+  body.bg-promo .top-bar { background: linear-gradient(90deg, #3a1a4a, #2a0f3a); }
+  body.bg-class { background: linear-gradient(135deg, #0a1a3a 0%, #1a2a5a 50%, #0a1a3a 100%); }
+  body.bg-class .top-bar { background: linear-gradient(90deg, #1a2a4a, #0a1a3a); }
+  
+  .top-bar { 
+    position: fixed; top: 0; left: 0; right: 0; 
+    background: linear-gradient(90deg, #2a1800, #3a2200);
+    border-bottom: 3px solid #ff8c00; padding: 12px; z-index: 100;
+    box-shadow: 0 4px 20px rgba(255, 140, 0, 0.3);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .top-bar .balance { font-size: 20px; color: #ffcc00; font-weight: bold; text-shadow: 0 0 10px #ffcc00; }
+  .top-bar .user-info { font-size: 12px; color: #ff8c00; }
+  .top-bar .logout-btn { 
+    background: linear-gradient(180deg, #8b0000, #660000); 
+    color: #fff; border: 1px solid #ff4444; padding: 6px 12px; 
+    border-radius: 8px; font-size: 11px; cursor: pointer; width: auto; margin: 0;
+  }
+  
+  h1 { 
+    color: #ff8c00; margin-bottom: 15px; font-size: 24px;
+    text-shadow: 0 0 15px #ff8c00, 0 0 30px #ff6600;
+    letter-spacing: 2px;
+  }
+  .nav { display: flex; gap: 4px; margin-bottom: 15px; width: 100%; max-width: 500px; flex-wrap: wrap; }
+  .nav button { 
+    flex: 1; min-width: 45px; padding: 9px 2px; 
+    border: 2px solid #ff8c00; 
+    background: linear-gradient(180deg, #2a1800, #1a0f00);
+    color: #ff8c00; font-size: 9px; border-radius: 10px; cursor: pointer; font-weight: bold;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(255, 140, 0, 0.2);
+  }
+  .nav button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4); }
+  .nav button.active { 
+    background: linear-gradient(180deg, #ff8c00, #ff6600); 
+    color: #1a0f00;
+    box-shadow: 0 0 15px #ff8c00;
+  }
+  .tab { width: 100%; max-width: 500px; }
+  
+  .click-area { text-align: center; margin: 20px 0 10px; }
+  .click-btn { 
+    width: 180px; height: 180px; border-radius: 50%; 
+    border: 5px solid #ff8c00; 
+    background: radial-gradient(circle, #3a2200, #1a0f00);
+    color: #ff8c00; font-size: 22px; font-weight: bold; cursor: pointer; 
+    box-shadow: 0 0 40px #ff8c00, inset 0 0 30px rgba(255, 140, 0, 0.3);
+    overflow: hidden; padding: 0;
+    transition: all 0.1s;
+  }
+  .click-btn:active { transform: scale(0.93); box-shadow: 0 0 60px #ffcc00; }
+  .click-btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  
+  .skins-row { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
+  .skin-mini { 
+    min-width: 75px; text-align: center; cursor: pointer; 
+    border: 2px solid transparent; border-radius: 12px; padding: 5px;
+    background: rgba(42, 24, 0, 0.6);
+    transition: all 0.2s;
+    position: relative;
+  }
+  .skin-mini.selected { border-color: #00ff00; box-shadow: 0 0 15px #00ff00; }
+  .skin-mini img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+  .skin-mini .name { font-size: 10px; color: #ffcc00; margin-top: 3px; }
+  .skin-mini .count {
+    position: absolute; top: 2px; right: 2px;
+    background: #ff8c00; color: #1a0f00;
+    font-size: 10px; font-weight: bold;
+    border-radius: 50%; width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  
+  .card { 
+    border: 2px solid #ff8c00; padding: 14px; margin: 10px 0; border-radius: 14px; 
+    background: linear-gradient(135deg, rgba(42, 24, 0, 0.95), rgba(26, 15, 0, 0.95));
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);
+    transition: all 0.2s;
+  }
+  .card:hover { box-shadow: 0 6px 25px rgba(255, 140, 0, 0.4); }
+  .card img { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; margin: 0 auto; display: block; }
+  .card .name { font-weight: bold; color: #ffcc00; margin: 6px 0; }
+  .card .price { color: #ff8c00; margin-bottom: 8px; }
+  
+  .rarity-common { color: #aaa; }
+  .rarity-rare { color: #4af; }
+  .rarity-epic { color: #a4f; }
+  .rarity-legend { color: #ffcc00; }
+  .rarity-mythic { color: #ff4af; text-shadow: 0 0 10px #ff4af; }
+  
+  button { 
+    padding: 12px; border: 2px solid #ff8c00; 
+    background: linear-gradient(180deg, #2a1800, #1a0f00);
+    color: #ff8c00; font-size: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; 
+    width: 100%; margin-top: 5px;
+    transition: all 0.2s;
+  }
+  button:hover { background: linear-gradient(180deg, #ff8c00, #ff6600); color: #1a0f00; box-shadow: 0 0 15px #ff8c00; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  
+  .result { text-align: center; font-size: 16px; min-height: 24px; margin: 10px 0; color: #ffcc00; font-weight: bold; }
+  
+  .wheel-container { position: relative; width: 250px; height: 250px; margin: 20px auto; }
+  .wheel { 
+    width: 100%; height: 100%; border-radius: 50%; 
+    border: 5px solid #ff8c00; position: relative; overflow: hidden; 
+    transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99); 
+    background: conic-gradient(#00ff00 0deg 180deg, #555 180deg 360deg);
+    box-shadow: 0 0 30px rgba(255, 140, 0, 0.5);
+  }
+  .arrow-pointer { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 32px; color: #ff8c00; z-index: 10; text-shadow: 0 0 10px #ff8c00; }
+  .wheel-center { 
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+    width: 65px; height: 65px; 
+    background: linear-gradient(135deg, #1a0f00, #2a1800); 
+    border: 3px solid #ff8c00; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 13px; color: #ffcc00; font-weight: bold; z-index: 5;
+    box-shadow: 0 0 20px #ff8c00;
+  }
+  
+  .case { 
+    border: 3px solid #ff8c00; border-radius: 18px; padding: 18px; margin: 15px 0; 
+    background: linear-gradient(135deg, rgba(42, 24, 0, 0.95), rgba(26, 15, 0, 0.95));
+    text-align: center;
+    box-shadow: 0 6px 25px rgba(255, 140, 0, 0.25);
+  }
+  .case-icon { font-size: 70px; margin-bottom: 8px; filter: drop-shadow(0 0 15px #ff8c00); }
+  .case-name { font-size: 20px; color: #ffcc00; font-weight: bold; margin-bottom: 8px; }
+  .case-price { color: #ff8c00; font-size: 16px; margin-bottom: 10px; }
+  .case-open { background: linear-gradient(180deg, #ff8c00, #ff6600); color: #1a0f00; font-size: 16px; }
+  
+  .case-contents { 
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; 
+    margin: 12px 0; padding: 10px; 
+    background: rgba(26, 15, 0, 0.6); border-radius: 10px;
+  }
+  .case-content-item { 
+    width: 50px; height: 50px; border-radius: 8px; 
+    border: 1px solid #ff8c00; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .case-content-item img { width: 100%; height: 100%; object-fit: cover; }
+  
+  .drop-result { font-size: 18px; color: #ffcc00; font-weight: bold; min-height: 30px; margin: 10px 0; text-align: center; }
+  
+  .item-card { 
+    border: 2px solid #ff8c00; border-radius: 12px; padding: 12px; margin: 8px 0; 
+    background: linear-gradient(135deg, rgba(42, 24, 0, 0.95), rgba(26, 15, 0, 0.95));
+    display: flex; align-items: center; gap: 10px;
+  }
+  .item-card .item-icon { font-size: 40px; }
+  .item-card .item-info { flex: 1; text-align: left; }
+  .item-card .item-name { color: #ffcc00; font-weight: bold; }
+  .item-card .item-desc { color: #ff8c00; font-size: 12px; }
+  
+  .promo-input { display: flex; gap: 5px; margin: 10px 0; }
+  .promo-input input { 
+    flex: 1; padding: 12px; border: 2px solid #ff8c00; 
+    background: #1a0f00; color: #ff8c00; border-radius: 10px; font-size: 14px;
+  }
+  
+  .auth-screen {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+    background: linear-gradient(135deg, #1a0f00, #2a1800);
+    z-index: 500; display: none; flex-direction: column; 
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .auth-screen.active { display: flex; }
+  .auth-box {
+    width: 100%; max-width: 350px; padding: 25px;
+    border: 3px solid #ff8c00; border-radius: 18px;
+    background: rgba(26, 15, 0, 0.95);
+    box-shadow: 0 0 40px rgba(255, 140, 0, 0.5);
+  }
+  .auth-box h2 { text-align: center; color: #ffcc00; margin-bottom: 20px; }
+  .auth-box input {
+    width: 100%; padding: 12px; margin: 8px 0;
+    border: 2px solid #ff8c00; background: #1a0f00; color: #ff8c00;
+    border-radius: 10px; font-size: 14px;
+  }
+  .auth-box .switch { text-align: center; margin-top: 15px; font-size: 12px; color: #ff8c00; cursor: pointer; text-decoration: underline; }
+  
+  .case-anim-overlay { 
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(0, 0, 0, 0.95); z-index: 200; 
+    display: none; align-items: center; justify-content: center; flex-direction: column; 
+  }
+  .case-anim-overlay.active { display: flex; }
+  .case-anim-strip { 
+    width: 100%; max-width: 500px; height: 130px; overflow: hidden; 
+    border: 3px solid #ff8c00; border-radius: 14px; 
+    background: #1a0f00; position: relative;
+    box-shadow: 0 0 30px #ff8c00;
+  }
+  .case-anim-track { display: flex; gap: 10px; position: absolute; top: 0; left: 0; height: 100%; align-items: center; padding: 0 10px; }
+  .case-anim-item { 
+    min-width: 100px; height: 100px; border: 2px solid #ff8c00; border-radius: 10px; 
+    background: #2a1800; display: flex; align-items: center; justify-content: center; 
+    font-size: 40px; overflow: hidden;
+  }
+  .case-anim-item img { width: 100%; height: 100%; object-fit: cover; }
+  .case-anim-pointer { position: absolute; top: 0; bottom: 0; left: 50%; width: 4px; background: #ff0000; z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px #ff0000; }
+  .case-anim-result { font-size: 26px; color: #ffcc00; font-weight: bold; margin-top: 20px; text-align: center; min-height: 40px; text-shadow: 0 0 15px #ffcc00; }
+  .case-anim-close { margin-top: 15px; max-width: 200px; }
+</style>
+</head>
+<body id="bodyEl">
+
+<div class="auth-screen" id="authScreen">
+  <div class="auth-box">
+    <h2 id="authTitle">ВХОД</h2>
+    <input type="text" id="authLogin" placeholder="Логин">
+    <input type="password" id="authPassword" placeholder="Пароль">
+    <label style="display:flex; align-items:center; gap:8px; margin:10px 0; font-size:13px; color:#ff8c00;">
+      <input type="checkbox" id="rememberMe" checked style="width:auto; margin:0;">
+      Запомнить меня
+    </label>
+    <button onclick="authAction()" id="authBtn">ВОЙТИ</button>
+    <div class="switch" onclick="toggleAuth()" id="authSwitch">Нет аккаунта? Зарегистрироваться</div>
+    <div class="result" id="authResult"></div>
+  </div>
+</div>
+
+<div class="top-bar">
+  <div>
+    <div class="balance" id="balance">Монеты: 50</div>
+    <div class="user-info" id="userInfo">Гость</div>
+  </div>
+  <button class="logout-btn" onclick="logout()">ВЫЙТИ</button>
+</div>
+
+<h1>SWILL UPGRADER</h1>
+
+<div class="nav">
+  <button id="nav-clicker" class="active" onclick="showTab('clicker')">Кликер</button>
+  <button id="nav-shop" onclick="showTab('shop')">Магазин</button>
+  <button id="nav-upgrade" onclick="showTab('upgrade')">Апгрейд</button>
+  <button id="nav-upgrades" onclick="showTab('upgrades')">Улучш.</button>
+  <button id="nav-cases" onclick="showTab('cases')">Кейсы</button>
+  <button id="nav-sell" onclick="showTab('sell')">Продать</button>
+  <button id="nav-withdraw" onclick="showTab('withdraw')">Вывод</button>
+  <button id="nav-promo" onclick="showTab('promo')">Промо</button>
+</div>
+
+<div id="tab-clicker" class="tab">
+  <div class="click-area">
+    <button class="click-btn" id="clickBtn" onclick="doClick()">
+      <span id="clickBtnContent">КЛИК</span>
+    </button>
+  </div>
+  <div style="text-align:center; color:#ffcc00;" id="clickInfo">За клик: 1 монета</div>
+  <div class="skins-row" id="skinsRow"></div>
+</div>
+
+<div id="tab-shop" class="tab" style="display:none;">
+  <h3 style="color:#ffcc00; margin-bottom:10px;">Магазин</h3>
+  <div id="shopList"></div>
+</div>
+
+<div id="tab-upgrade" class="tab" style="display:none;">
+  <h3 style="color:#ffcc00; margin-bottom:10px;">Апгрейдер</h3>
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-around;">
+      <div>
+        <div id="currentIcon">❓</div>
+        <div class="name" id="currentName">Не выбран</div>
+      </div>
+      <div style="font-size:28px; color:#ff8c00;">➡️</div>
+      <div>
+        <div id="targetIcon">❓</div>
+        <div class="name" id="targetName">Не выбран</div>
+      </div>
+    </div>
+  </div>
+  <div class="wheel-container">
+    <div class="arrow-pointer">▼</div>
+    <div class="wheel" id="wheel"></div>
+    <div class="wheel-center" id="wheelCenter">50%</div>
+  </div>
+  <div class="result" id="upgradeResult">Выберите цель и крутите</div>
+  <button onclick="spinWheel()" id="spinBtn">КРУТИТЬ</button>
+  <div class="card" style="margin-top:15px;">
+    <h3 style="color:#ffcc00; margin-bottom:10px;">Выберите цель</h3>
+    <div id="targetList"></div>
+  </div>
+</div>
+
+<div id="tab-upgrades" class="tab" style="display:none;">
+  <h3 style="color:#ffcc00; margin-bottom:10px;">Улучшения</h3>
+  <div id="upgradesList"></div>
+</div>
+
+<div id="tab-cases" class="tab" style="display:none;">
+  <h3 style="color:#ffcc00; margin-bottom:10px;">Кейсы</h3>
+  <div id="casesList"></div>
+  <div class="drop-result" id="caseResult"></div>
+</div>
+
+<div id="tab-sell" class="tab" style="display:none;">
+  <h3 style="color:#ffcc00; margin-bottom:10px;">Продажа скинов</h3>
+  <div id="sellList"></div>
+  <div class="drop-result" id="sellResult"></div>
+</div>
+
+<div id="tab-withdraw" class="tab" style="display:none;">
+  <h3 style="color:#ffcc00; margin-bottom:10px;">Вывод предметов</h3>
+  <div id="withdrawList"></div>
+  <div class="drop-result" id="withdrawResult"></div>
+</div>
+
+<div id="tab-promo" class="tab" style="display:none;">
+  <h3 style="color:#ffcc00; margin-bottom:10px;">Промокоды</h3>
+  <div class="promo-input">
+    <input type="text" id="promoInput" placeholder="Введите промокод">
+    <button onclick="activatePromo()" style="width:auto; padding:10px 20px;">АКТИВИРОВАТЬ</button>
+  </div>
+  <div class="drop-result" id="promoResult"></div>
+</div>
+
+<div class="case-anim-overlay" id="caseAnim">
+  <h2 style="color:#ffcc00; margin-bottom:15px;">Открытие кейса...</h2>
+  <div class="case-anim-strip">
+    <div class="case-anim-pointer"></div>
+    <div class="case-anim-track" id="caseAnimTrack"></div>
+  </div>
+  <div class="case-anim-result" id="caseAnimResult"></div>
+  <button class="case-anim-close" id="caseAnimClose" onclick="closeCaseAnim()" style="display:none;">ЗАБРАТЬ</button>
+</div>
+
+<script>
+// ============ ЗВУКИ ============
+let audioCtx = null;
+let audioUnlocked = false;
+function initAudio() {
+  if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function unlockAudio() {
+  if (audioUnlocked) return;
+  initAudio();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  audioUnlocked = true;
+}
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('click', unlockAudio, { once: true });
+function playTone(freq, duration, type, volume) {
+  initAudio();
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(volume || 0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+function soundClick() { playTone(800, 0.05, 'square', 0.05); }
+function soundBuy() { playTone(500, 0.1, 'sine', 0.1); setTimeout(() => playTone(700, 0.15, 'sine', 0.1), 80); }
+function soundWin() { playTone(600, 0.1, 'sine', 0.15); setTimeout(() => playTone(800, 0.1, 'sine', 0.15), 100); setTimeout(() => playTone(1000, 0.3, 'sine', 0.15), 200); }
+function soundLose() { playTone(300, 0.2, 'sawtooth', 0.1); setTimeout(() => playTone(200, 0.3, 'sawtooth', 0.1), 150); }
+function soundCase() { playTone(400, 0.05, 'square', 0.08); }
+function soundPromo() { playTone(700, 0.1, 'sine', 0.15); setTimeout(() => playTone(900, 0.1, 'sine', 0.15), 100); setTimeout(() => playTone(1200, 0.2, 'sine', 0.15), 200); }
+
+// ============ ПРОМОКОДЫ ============
+const PROMOS = {
+  'SWILL2025': { type: 'item', itemId: 'pen', count: 2 },
+  'PENLOVER': { type: 'item', itemId: 'pen', count: 2 },
+  'BG2025': { type: 'background', bg: 'promo' },
+  'CLASS2025': { type: 'skin', skinId: 'class1' },
+  'BGCLASS': { type: 'background', bg: 'class' },
+  'FREESKIN': { type: 'skin', skinId: 's1' },
+  'PENCILGIFT': { type: 'item', itemId: 'pencil', count: 1 },
+  'MARKERGIFT': { type: 'item', itemId: 'marker', count: 1 }
+};
+
+// ============ КАРТИНКИ ============
+const ALL_SKINS = [
+  { id: 's1', name: 'Choco Boy', price: 10, rarity: 1, img: '8.jpg', inShop: true },
+  { id: 's2', name: 'Chupa Chups', price: 15, rarity: 1, img: '9.jpg', inShop: true },
+  { id: 's3', name: 'Тис сыр', price: 20, rarity: 2, img: '10.jpg', inShop: true },
+  { id: 's4', name: 'Тис сметана', price: 25, rarity: 2, img: '11.jpg', inShop: true },
+  { id: 's5', name: 'Мариз', price: 30, rarity: 2, img: '12.jpg', inShop: true },
+  { id: 's6', name: 'Бон Пари', price: 40, rarity: 2, img: '13.jpg', inShop: true },
+  { id: 's7', name: 'Бассейн', price: 80, rarity: 3, img: '1.jpg', inShop: false },
+  { id: 's8', name: 'Мем', price: 120, rarity: 3, img: '2.jpg', inShop: false },
+  { id: 's9', name: 'Пантера 1', price: 180, rarity: 4, img: '3.jpg', inShop: false },
+  { id: 's10', name: 'Пантера 2', price: 250, rarity: 4, img: '4.jpg', inShop: false },
+  { id: 's11', name: 'Мёд', price: 350, rarity: 4, img: '5.jpg', inShop: false },
+  { id: 's12', name: 'Мальчик', price: 500, rarity: 5, img: '6.jpg', inShop: false },
+  { id: 's13', name: 'Машина', price: 800, rarity: 5, img: '7.jpg', inShop: false },
+  // Скин из промокода CLASS2025
+  { id: 'class1', name: 'Класс', price: 2000, rarity: 5, img: 'class.jpg', inShop: false, promoOnly: true }
+];
+
+const ITEMS = [
+  { id: 'pencil', name: 'Карандаш', icon: '✏️', price: 500 },
+  { id: 'pen', name: 'Ручка', icon: '🖊️', price: 1500 },
+  { id: 'marker', name: 'Фломастер', icon: '🖍️', price: 3000 }
+];
+
+const UPGRADES = [
+  { id: 'click1', name: 'Клик +1', desc: '+1 монета за клик', price: 100, effect: (db) => { db.clickPower += 1; } },
+  { id: 'click5', name: 'Клик +5', desc: '+5 монет за клик', price: 500, effect: (db) => { db.clickPower += 5; } },
+  { id: 'click10', name: 'Клик +10', desc: '+10 монет за клик', price: 1500, effect: (db) => { db.clickPower += 10; } },
+  { id: 'auto1', name: 'Авто +1', desc: '+1 монета в секунду', price: 200, effect: (db) => { db.passiveIncome += 1; } },
+  { id: 'auto5', name: 'Авто +5', desc: '+5 монет в секунду', price: 1000, effect: (db) => { db.passiveIncome += 5; } },
+  { id: 'auto10', name: 'Авто +10', desc: '+10 монет в секунду', price: 3000, effect: (db) => { db.passiveIncome += 10; } }
+];
+
+const RARITY_NAMES = { 1: 'Обычный', 2: 'Редкий', 3: 'Эпический', 4: 'Легендарный', 5: 'Мифический' };
+const RARITY_CLASSES = { 1: 'rarity-common', 2: 'rarity-rare', 3: 'rarity-epic', 4: 'rarity-legend', 5: 'rarity-mythic' };
+
+const BASE_CHANCE = 50;
+
+// ============ АККАУНТЫ ============
+let currentUser = null;
+
+function getAccounts() {
+  const s = localStorage.getItem('swillAccounts');
+  if (!s) return {};
+  try { return JSON.parse(s); } catch { return {}; }
+}
+function saveAccounts(acc) { localStorage.setItem('swillAccounts', JSON.stringify(acc)); }
+
+function getDB() {
+  if (!currentUser) return null;
+  const acc = getAccounts();
+  if (!acc[currentUser]) return null;
+  return acc[currentUser].db;
+}
+function saveDB(db) {
+  if (!currentUser) return;
+  const acc = getAccounts();
+  acc[currentUser].db = db;
+  saveAccounts(acc);
+}
+
+function autoLogin() {
+  const savedUser = localStorage.getItem('swillCurrentUser');
+  if (savedUser) {
+    const acc = getAccounts();
+    if (acc[savedUser]) {
+      currentUser = savedUser;
+      startGame();
+      return true;
+    }
+  }
+  document.getElementById('authScreen').classList.add('active');
+  return false;
+}
+
+let isRegisterMode = false;
+
+function toggleAuth() {
+  isRegisterMode = !isRegisterMode;
+  document.getElementById('authTitle').textContent = isRegisterMode ? 'РЕГИСТРАЦИЯ' : 'ВХОД';
+  document.getElementById('authBtn').textContent = isRegisterMode ? 'ЗАРЕГИСТРИРОВАТЬСЯ' : 'ВОЙТИ';
+  document.getElementById('authSwitch').textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться';
+}
+
+function authAction() {
+  const login = document.getElementById('authLogin').value.trim();
+  const password = document.getElementById('authPassword').value.trim();
+  const res = document.getElementById('authResult');
+  const remember = document.getElementById('rememberMe').checked;
+  
+  if (!login || !password) { res.textContent = 'Заполните все поля'; return; }
+  if (login.length < 3) { res.textContent = 'Логин минимум 3 символа'; return; }
+  if (password.length < 3) { res.textContent = 'Пароль минимум 3 символа'; return; }
+  
+  const acc = getAccounts();
+  
+  if (isRegisterMode) {
+    if (acc[login]) { res.textContent = 'Логин занят'; return; }
+    acc[login] = {
+      password: password,
+      db: {
+        coins: 50,
+        currentSkin: null,
+        ownedSkins: [],
+        ownedItems: [],
+        usedPromos: [],
+        target: null,
+        background: 'default',
+        clickPower: 1,
+        passiveIncome: 0,
+        upgrades: {}
+      }
+    };
+    saveAccounts(acc);
+    currentUser = login;
+    if (remember) localStorage.setItem('swillCurrentUser', login);
+    startGame();
+  } else {
+    if (!acc[login]) { res.textContent = 'Нет такого аккаунта'; return; }
+    if (acc[login].password !== password) { res.textContent = 'Неверный пароль'; return; }
+    currentUser = login;
+    if (remember) localStorage.setItem('swillCurrentUser', login);
+    else localStorage.removeItem('swillCurrentUser');
+    startGame();
+  }
+}
+
+function startGame() {
+  document.getElementById('authScreen').classList.remove('active');
+  document.getElementById('userInfo').textContent = 'Игрок: ' + currentUser;
+  updateUI();
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('swillCurrentUser');
+  document.getElementById('authScreen').classList.add('active');
+  document.getElementById('authLogin').value = '';
+  document.getElementById('authPassword').value = '';
+  document.getElementById('authResult').textContent = '';
+}
+
+// ============ ФОН ============
+function applyBackground(bg) {
+  const body = document.getElementById('bodyEl');
+  body.classList.remove('bg-promo', 'bg-class');
+  if (bg === 'promo') body.classList.add('bg-promo');
+  else if (bg === 'class') body.classList.add('bg-class');
+}
+
+// ============ ИНТЕРФЕЙС ============
+function showTab(tab) {
+  ['clicker','shop','upgrade','upgrades','cases','sell','withdraw','promo'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = (t === tab) ? 'block' : 'none';
+    document.getElementById('nav-'+t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'cases') renderCases();
+  if (tab === 'withdraw') renderWithdraw();
+  if (tab === 'upgrades') renderUpgrades();
+  if (tab === 'sell') renderSell();
+}
+
+function renderCases() {
+  const cases = [
+    { id: 'common', icon: '📦', name: 'Обычный кейс', price: 50, rarityMax: 2 },
+    { id: 'rare', icon: '🎁', name: 'Редкий кейс', price: 150, rarityMax: 4 },
+    { id: 'legend', icon: '💎', name: 'Легендарный кейс', price: 500, rarityMax: 5 },
+    { id: 'school', icon: '🎒', name: 'Школьный кейс', price: 300, rarityMax: 3 },
+    { id: 'photo', icon: '📸', name: 'Фотокейс', price: 1000, rarityMax: 5 },
+    { id: 'class', icon: '🏫', name: 'Кейс класса', price: 2000, rarityMax: 5, includeClass: true }
+  ];
+  const container = document.getElementById('casesList');
+  container.innerHTML = '';
+  cases.forEach(c => {
+    let pool = ALL_SKINS.filter(s => s.rarity <= c.rarityMax);
+    if (!c.includeClass) pool = pool.filter(s => !s.promoOnly);
+    const div = document.createElement('div');
+    div.className = 'case';
+    let contentsHtml = '<div class="case-contents">';
+    pool.forEach(s => {
+      contentsHtml += `<div class="case-content-item" title="${s.name}"><img src="${s.img}"></div>`;
+    });
+    contentsHtml += '</div>';
+    div.innerHTML = `
+      <div class="case-icon">${c.icon}</div>
+      <div class="case-name">${c.name}</div>
+      <div class="case-price">${c.price} монет</div>
+      <div style="color:#ff8c00; font-size:12px; margin-bottom:5px;">Возможные награды:</div>
+      ${contentsHtml}
+      <button class="case-open" onclick="openCase('${c.id}')">ОТКРЫТЬ</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function renderSell() {
+  const db = getDB();
+  const container = document.getElementById('sellList');
+  container.innerHTML = '';
+  
+  const counts = {};
+  db.ownedSkins.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+  
+  const uniqueSkins = [...new Set(db.ownedSkins)];
+  if (uniqueSkins.length === 0) {
+    container.innerHTML = '<p style="color:#ff8c00; text-align:center;">У вас нет скинов для продажи</p>';
+    return;
+  }
+  
+  uniqueSkins.forEach(id => {
+    const s = ALL_SKINS.find(x => x.id === id);
+    if (!s) return;
+    const count = counts[id];
+    const isCurrent = db.currentSkin === id;
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <img src="${s.img}">
+      <div class="name ${RARITY_CLASSES[s.rarity]}">${s.name} (x${count})</div>
+      <div class="price">Продажа: ${Math.floor(s.price / 2)} монет за штуку</div>
+      <button onclick="sellSkin('${id}')" ${isCurrent && count === 1 ? 'disabled' : ''}>Продать 1 шт.</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function renderWithdraw() {
+  const db = getDB();
+  const container = document.getElementById('withdrawList');
+  container.innerHTML = '';
+  ITEMS.forEach(item => {
+    const count = db.ownedItems.filter(i => i === item.id).length;
+    const div = document.createElement('div');
+    div.className = 'item-card';
+    div.innerHTML = `
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-info">
+        <div class="item-name">${item.name} (${count} шт.)</div>
+        <div class="item-desc">Выводится за ${item.price} монет</div>
+      </div>
+      <div style="min-width:80px;">
+        <button onclick="withdrawItem('${item.id}')">Вывести</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function renderUpgrades() {
+  const db = getDB();
+  const container = document.getElementById('upgradesList');
+  container.innerHTML = '';
+  UPGRADES.forEach(up => {
+    const count = db.upgrades[up.id] || 0;
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <div class="name">${up.name} (куплено: ${count})</div>
+      <div class="price">${up.desc}</div>
+      <div style="color:#ff8c00; margin:5px 0;">${up.price} монет</div>
+      <button onclick="buyUpgrade('${up.id}')">Купить</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function updateUI() {
+  const db = getDB();
+  if (!db) return;
+  document.getElementById('balance').textContent = 'Монеты: ' + db.coins;
+  document.getElementById('clickInfo').textContent = 'За клик: ' + db.clickPower + ' монет | В секунду: ' + db.passiveIncome;
+  applyBackground(db.background);
+  
+  const cur = ALL_SKINS.find(s => s.id === db.currentSkin);
+  const curEl = document.getElementById('currentIcon');
+  const curName = document.getElementById('currentName');
+  if (cur) {
+    curEl.innerHTML = `<img src="${cur.img}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">`;
+    curName.textContent = cur.name;
+    curName.className = 'name ' + RARITY_CLASSES[cur.rarity];
+  } else {
+    curEl.textContent = '❓';
+    curName.textContent = 'Не выбран';
+  }
+  
+  const btnContent = document.getElementById('clickBtnContent');
+  if (cur) {
+    btnContent.innerHTML = `<img src="${cur.img}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  } else {
+    btnContent.textContent = 'КЛИК';
+  }
+  
+  if (db.target) {
+    const t = ALL_SKINS.find(s => s.id === db.target);
+    if (t) {
+      document.getElementById('targetIcon').innerHTML = `<img src="${t.img}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">`;
+      document.getElementById('targetName').textContent = t.name;
+      document.getElementById('targetName').className = 'name ' + RARITY_CLASSES[t.rarity];
+    } else {
+      const item = ITEMS.find(i => i.id === db.target);
+      if (item) {
+        document.getElementById('targetIcon').textContent = item.icon;
+        document.getElementById('targetName').textContent = item.name;
+      }
+    }
+  } else {
+    document.getElementById('targetIcon').textContent = '❓';
+    document.getElementById('targetName').textContent = 'Не выбран';
+  }
+  
+  const row = document.getElementById('skinsRow');
+  row.innerHTML = '';
+  const counts = {};
+  db.ownedSkins.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+  const uniqueOwned = [...new Set(db.ownedSkins)];
+  if (uniqueOwned.length === 0) {
+    row.innerHTML = '<p style="color:#ff8c00; font-size:12px;">Купите скины в магазине</p>';
+  }
+  uniqueOwned.forEach(id => {
+    const s = ALL_SKINS.find(x => x.id === id);
+    if (!s) return;
+    const selected = db.currentSkin === id;
+    const div = document.createElement('div');
+    div.className = 'skin-mini' + (selected ? ' selected' : '');
+    div.innerHTML = `
+      <img src="${s.img}">
+      <div class="name ${RARITY_CLASSES[s.rarity]}">${s.name}</div>
+      ${counts[id] > 1 ? `<div class="count">${counts[id]}</div>` : ''}
+    `;
+    div.onclick = () => setSkin(id);
+    row.appendChild(div);
+  });
+  
+  const shop = document.getElementById('shopList');
+  shop.innerHTML = '';
+  ALL_SKINS.filter(s => s.inShop).forEach(s => {
+    const owned = db.ownedSkins.includes(s.id);
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <img src="${s.img}">
+      <div class="name ${RARITY_CLASSES[s.rarity]}">${s.name} (${RARITY_NAMES[s.rarity]})</div>
+      <div class="price">${s.price} монет</div>
+      <button onclick="buy('${s.id}')">${owned ? 'Купить ещё' : 'Купить'}</button>
+    `;
+    shop.appendChild(div);
+  });
+  
+  const tl = document.getElementById('targetList');
+  tl.innerHTML = '';
+  ALL_SKINS.forEach(t => {
+    if (t.promoOnly && !db.ownedSkins.includes(t.id)) return;
+    const selected = db.target === t.id;
+    const div = document.createElement('div');
+    div.className = 'card' + (selected ? ' selected-target' : '');
+    div.innerHTML = `
+      <img src="${t.img}">
+      <div class="name ${RARITY_CLASSES[t.rarity]}">${t.name} (${RARITY_NAMES[t.rarity]}) — ${t.price} монет</div>
+      <button onclick="setTarget('${t.id}')">${selected ? 'Выбрано' : 'Выбрать целью'}</button>
+    `;
+    tl.appendChild(div);
+  });
+  
+  ITEMS.forEach(it => {
+    const selected = db.target === it.id;
+    const div = document.createElement('div');
+    div.className = 'card' + (selected ? ' selected-target' : '');
+    div.innerHTML = `
+      <div style="font-size:50px;">${it.icon}</div>
+      <div class="name">${it.name} — ${it.price} монет</div>
+      <button onclick="setTarget('${it.id}')">${selected ? 'Выбрано' : 'Выбрать целью'}</button>
+    `;
+    tl.appendChild(div);
+  });
+}
+
+// ============ ДЕЙСТВИЯ ============
+function doClick() {
+  soundClick();
+  const db = getDB();
+  db.coins += db.clickPower;
+  saveDB(db);
+  updateUI();
+}
+
+function buy(id) {
+  const db = getDB();
+  const s = ALL_SKINS.find(x => x.id === id);
+  if (!s || db.coins < s.price) return alert('Недостаточно монет');
+  soundBuy();
+  db.coins -= s.price;
+  db.ownedSkins.push(id);
+  db.currentSkin = id;
+  saveDB(db);
+  updateUI();
+}
+
+function sellSkin(id) {
+  const db = getDB();
+  const s = ALL_SKINS.find(x => x.id === id);
+  if (!s) return;
+  const count = db.ownedSkins.filter(x => x === id).length;
+  if (count === 0) return;
+  if (db.currentSkin === id && count === 1) {
+    document.getElementById('sellResult').textContent = 'Нельзя продать последний экземпляр текущего скина!';
+    soundLose();
+    return;
+  }
+  soundBuy();
+  const idx = db.ownedSkins.indexOf(id);
+  db.ownedSkins.splice(idx, 1);
+  const sellPrice = Math.floor(s.price / 2);
+  db.coins += sellPrice;
+  saveDB(db);
+  document.getElementById('sellResult').textContent = `💰 Продано: ${s.name} за ${sellPrice} монет`;
+  updateUI();
+  renderSell();
+}
+
+function buyUpgrade(id) {
+  const db = getDB();
+  const up = UPGRADES.find(u => u.id === id);
+  if (!up) return;
+  if (db.coins < up.price) return alert('Недостаточно монет');
+  soundBuy();
+  db.coins -= up.price;
+  db.upgrades[id] = (db.upgrades[id] || 0) + 1;
+  up.effect(db);
+  saveDB(db);
+  updateUI();
+  renderUpgrades();
+}
+
+function setSkin(id) {
+  const db = getDB();
+  if (!db.ownedSkins.includes(id)) return;
+  soundClick();
+  db.currentSkin = id;
+  saveDB(db);
+  updateUI();
+}
+
+function setTarget(id) {
+  const db = getDB();
+  soundClick();
+  db.target = id;
+  saveDB(db);
+  updateUI();
+}
+
+// ============ ПАССИВНЫЙ ДОХОД ============
+setInterval(() => {
+  const db = getDB();
+  if (db && db.passiveIncome > 0) {
+    db.coins += db.passiveIncome;
+    saveDB(db);
+    updateUI();
+  }
+}, 1000);
+
+// ============ КЕЙСЫ ============
+function openCase(type) {
+  const db = getDB();
+  let price = 0;
+  let pool = [];
+  
+  if (type === 'common') { price = 50; pool = ALL_SKINS.filter(s => s.rarity <= 2 && !s.promoOnly); }
+  else if (type === 'rare') { price = 150; pool = ALL_SKINS.filter(s => s.rarity <= 4 && !s.promoOnly); }
+  else if (type === 'legend') { price = 500; pool = ALL_SKINS.filter(s => !s.promoOnly); }
+  else if (type === 'school') { price = 300; pool = ALL_SKINS.filter(s => s.rarity <= 3 && !s.promoOnly); }
+  else if (type === 'photo') { price = 1000; pool = ALL_SKINS.filter(s => !s.promoOnly); }
+  else if (type === 'class') { price = 2000; pool = ALL_SKINS; }
+  
+  if (db.coins < price) {
+    document.getElementById('caseResult').textContent = 'Недостаточно монет!';
+    soundLose();
+    return;
+  }
+  soundCase();
+  db.coins -= price;
+  saveDB(db);
+  updateUI();
+  
+  const track = document.getElementById('caseAnimTrack');
+  track.innerHTML = '';
+  const items = [];
+  for (let i = 0; i < 40; i++) {
+    const s = pool[Math.floor(Math.random() * pool.length)];
+    items.push({ type: 'skin', data: s });
+  }
+  const isItem = Math.random() < 0.02;
+  let winItem;
+  if (isItem) {
+    winItem = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    items[35] = { type: 'item', data: winItem };
+  } else {
+    const weightedPool = [];
+    pool.forEach(s => {
+      const weight = Math.max(1, 6 - s.rarity);
+      for (let k = 0; k < weight; k++) weightedPool.push(s);
+    });
+    winItem = weightedPool[Math.floor(Math.random() * weightedPool.length)];
+    items[35] = { type: 'skin', data: winItem };
+  }
+  
+  items.forEach(it => {
+    const div = document.createElement('div');
+    div.className = 'case-anim-item';
+    if (it.type === 'skin') div.innerHTML = `<img src="${it.data.img}">`;
+    else div.textContent = it.data.icon;
+    track.appendChild(div);
+  });
+  
+  document.getElementById('caseAnim').classList.add('active');
+  document.getElementById('caseAnimResult').textContent = '';
+  document.getElementById('caseAnimClose').style.display = 'none';
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0)';
+  
+  setTimeout(() => {
+    const offset = -(35 * 110) + 150;
+    track.style.transition = 'transform 4s cubic-bezier(0.2, 0.8, 0.2, 1)';
+    track.style.transform = `translateX(${offset}px)`;
+  }, 100);
+  
+  setTimeout(() => {
+    if (isItem) {
+      db.ownedItems.push(winItem.id);
+      document.getElementById('caseAnimResult').textContent = `🎉 ${winItem.icon} ${winItem.name}`;
+    } else {
+      db.ownedSkins.push(winItem.id);
+      db.currentSkin = winItem.id;
+      document.getElementById('caseAnimResult').textContent = `🎉 ${winItem.name}`;
+    }
+    saveDB(db);
+    updateUI();
+    soundWin();
+    document.getElementById('caseAnimClose').style.display = 'block';
+  }, 4200);
+}
+
+function closeCaseAnim() {
+  soundClick();
+  document.getElementById('caseAnim').classList.remove('active');
+}
+
+// ============ ВЫВОД ============
+function withdrawItem(id) {
+  const db = getDB();
+  const item = ITEMS.find(i => i.id === id);
+  if (!item) return;
+  const idx = db.ownedItems.indexOf(id);
+  if (idx === -1) {
+    document.getElementById('withdrawResult').textContent = 'У вас нет этого предмета!';
+    soundLose();
+    return;
+  }
+  soundBuy();
+  db.ownedItems.splice(idx, 1);
+  db.coins += item.price;
+  saveDB(db);
+  document.getElementById('withdrawResult').textContent = `💰 Выведено: ${item.icon} ${item.name} за ${item.price} монет`;
+  updateUI();
+  renderWithdraw();
+}
+
+// ============ ПРОМОКОДЫ ============
+function activatePromo() {
+  const db = getDB();
+  const code = document.getElementById('promoInput').value.trim().toUpperCase();
+  const res = document.getElementById('promoResult');
+  if (!PROMOS[code]) { res.textContent = '❌ Неверный промокод'; soundLose(); return; }
+  if (db.usedPromos.includes(code)) { res.textContent = '❌ Уже использован'; soundLose(); return; }
+  const promo = PROMOS[code];
+  
+  if (promo.type === 'item') {
+    for (let i = 0; i < promo.count; i++) db.ownedItems.push(promo.itemId);
+    db.usedPromos.push(code);
+    saveDB(db);
+    const item = ITEMS.find(i => i.id === promo.itemId);
+    res.textContent = `✅ Получено: ${item.icon} ${item.name} x${promo.count}`;
+    soundPromo();
+    updateUI();
+  } else if (promo.type === 'background') {
+    db.background = promo.bg;
+    db.usedPromos.push(code);
+    saveDB(db);
+    res.textContent = `✅ Получен фон!`;
+    soundPromo();
+    applyBackground(promo.bg);
+    updateUI();
+  } else if (promo.type === 'skin') {
+    db.ownedSkins.push(promo.skinId);
+    db.currentSkin = promo.skinId;
+    db.usedPromos.push(code);
+    saveDB(db);
+    const skin = ALL_SKINS.find(s => s.id === promo.skinId);
+    res.textContent = `✅ Получен скин: ${skin.name}`;
+    soundPromo();
+    updateUI();
+  }
+}
+
+// ============ АПГРЕЙДЕР ============
+function spinWheel() {
+  const db = getDB();
+  if (!db.target) { document.getElementById('upgradeResult').textContent = 'Выберите цель!'; return; }
+  if (!db.currentSkin) { document.getElementById('upgradeResult').textContent = 'Выберите текущий скин!'; return; }
+  if (db.spinning) return;
+  
+  db.spinning = true;
+  saveDB(db);
+  document.getElementById('spinBtn').disabled = true;
+  
+  const cur = ALL_SKINS.find(s => s.id === db.currentSkin);
+  let targetPrice = 0;
+  const skinTarget = ALL_SKINS.find(s => s.id === db.target);
+  const itemTarget = ITEMS.find(i => i.id === db.target);
+  if (skinTarget) targetPrice = skinTarget.price;
+  else if (itemTarget) targetPrice = itemTarget.price;
+  
+  const priceDiff = targetPrice - cur.price;
+  let penalty = 0;
+  if (priceDiff > 0) penalty = Math.floor(priceDiff / 30);
+  const realChance = Math.max(10, BASE_CHANCE - penalty);
+  
+  const greenDeg = realChance * 3.6;
+  document.getElementById('wheel').style.background = `conic-gradient(#00ff00 0deg ${greenDeg}deg, #555 ${greenDeg}deg 360deg)`;
+  document.getElementById('wheelCenter').textContent = realChance + '%';
+  
+  const spins = 3 + Math.floor(Math.random() * 3);
+  const extra = Math.random() * 360;
+  const totalAngle = spins * 360 + extra;
+  
+  const wheel = document.getElementById('wheel');
+  let current = 0;
+  const duration = 3000;
+  const startTime = performance.now();
+  
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    current = totalAngle * eased;
+    wheel.style.transform = `rotate(${current}deg)`;
+    if (progress < 1) requestAnimationFrame(animate);
+    else finishSpin(extra, realChance);
+  }
+  requestAnimationFrame(animate);
+}
+
+function finishSpin(extra, realChance) {
+  const db = getDB();
+  const angle = (360 - (extra % 360)) % 360;
+  const isWin = angle < realChance * 3.6;
+  const resultEl = document.getElementById('upgradeResult');
+  const skinTarget = ALL_SKINS.find(s => s.id === db.target);
+  const itemTarget = ITEMS.find(i => i.id === db.target);
+  
+  if (isWin) {
+    if (skinTarget) {
+      db.ownedSkins.push(skinTarget.id);
+      db.currentSkin = skinTarget.id;
+      resultEl.textContent = `✅ УСПЕХ! Получен скин: ${skinTarget.name}`;
+      soundWin();
+    } else if (itemTarget) {
+      db.ownedItems.push(itemTarget.id);
+      resultEl.textContent = `✅ УСПЕХ! Получен предмет: ${itemTarget.icon} ${itemTarget.name}`;
+      soundWin();
+    }
+  } else {
+    const cur = ALL_SKINS.find(s => s.id === db.currentSkin);
+    if (cur) {
+      const idx = db.ownedSkins.indexOf(cur.id);
+      if (idx !== -1) db.ownedSkins.splice(idx, 1);
+      resultEl.textContent = `❌ ПРОВАЛ! Потерян: ${cur.name}`;
+      const remaining = db.ownedSkins.filter(x => x === cur.id).length;
+      if (remaining === 0) db.currentSkin = null;
+    } else {
+      resultEl.textContent = `❌ ПРОВАЛ! Ничего не потеряно`;
+    }
+    soundLose();
+  }
+  db.target = null;
+  db.spinning = false;
+  saveDB(db);
+  document.getElementById('spinBtn').disabled = false;
+  updateUI();
+}
+
+// ============ СТАРТ ============
+autoLogin();
+</script>
+</body>
+</html>
